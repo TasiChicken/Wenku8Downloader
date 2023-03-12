@@ -18,6 +18,7 @@ line:23 Change private "static" IWebDriver driver to private IWebDriver driver
 line:33 Change private "static" void initSelenium() to private void initSelenium()
 
 line:45 Add 
+
 if(!string.IsNullOrWhiteSpace(folder))
   options.AddUserProfilePreference("download.default_directory", folder);
   
