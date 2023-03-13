@@ -37,3 +37,6 @@ Add folder as parameter when calling GetIndexes function and init it in construc
 
 5.
 Add || !running in while(element.stytle == display:none) in convertToMobi function(there are two place to edit).
+
+6.
+Log append reason (catch Exception)
