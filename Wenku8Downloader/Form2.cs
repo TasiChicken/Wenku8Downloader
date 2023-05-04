@@ -20,7 +20,7 @@ namespace Wenku8Downloader
         internal static HttpClient client = new HttpClient();
         
         private static IWebDriver _driver;
-        private static IWebDriver driver
+        private IWebDriver driver
         {
             get
             {
@@ -30,7 +30,7 @@ namespace Wenku8Downloader
             set { _driver = value; }
         }
         
-        private static void initSelenium()
+        private void initSelenium()
         {
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.HideCommandPromptWindow = true;
@@ -42,19 +42,20 @@ namespace Wenku8Downloader
             options.AddArgument("--headless=new");
 
             options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
+            options.AddUserProfilePreference("download.default_directory", folder);
 
-            driver = new ChromeDriver(service, options);
+            _driver = new ChromeDriver(service, options);
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
         }
         
         private static void disposeSelenium()
         {
             if (_driver == null) return;
-            try { driver.Close(); }
+            try { _driver.Close(); }
             catch { }
-            try { driver.Quit(); }
+            try { _driver.Quit(); }
             catch { }
-            try { driver.Dispose(); }
+            try { _driver.Dispose(); }
             catch { }
         }
 
@@ -62,9 +63,9 @@ namespace Wenku8Downloader
 
         #region Public API
 
-        public static string[] GetIndexes(Form1 form1, int bookcase)
+        public static string[] GetIndexes(Form1 form1, int bookcase, string folder)
         {
-            new Form2(form1, bookcase).ShowDialog();
+            new Form2(form1, bookcase, folder).ShowDialog();
             return indexes;
         }
 
@@ -161,15 +162,23 @@ namespace Wenku8Downloader
                 byte[] imgData = await client.GetByteArrayAsync($"https://img.wenku8.com/image/{head}/{index}/{index}s.jpg");
                 File.WriteAllBytes(location + $"//{index}.jpg", imgData);
             }
-            catch { Form1.log.AppendLine($"{DateTime.Now}\t:\t{index}-image"); }
+            catch (Exception ex)
+            {
+                Form1.log.AppendLine($"{DateTime.Now}\t:\t{index}-image"); 
+                Form1.log.AppendLine(ex.Message); 
+            }
 
             try
             {
                 byte[] bytes = await client.GetByteArrayAsync($"https://dl1.wenku8.com/txt{encoding}/{head}/{index}.txt");
-                string txtContent = Encoding.GetEncoding("gbk").GetString(bytes);
+                string txtContent = (encoding == "gbk" ? Encoding.GetEncoding("gbk") : Encoding.UTF8).GetString(bytes);
                 File.WriteAllText(location + $"//{index}.txt", txtContent);
             }
-            catch { Form1.log.AppendLine($"{DateTime.Now}\t:\t{index}-txt"); }
+            catch (Exception ex)
+            {
+                Form1.log.AppendLine($"{DateTime.Now}\t:\t{index}-txt");
+                Form1.log.AppendLine(ex.Message);
+            }
         }
 
         #endregion
@@ -178,8 +187,9 @@ namespace Wenku8Downloader
 
         int bookcase;
 
-        private Form2(Form1 form1, int bookcase)
+        private Form2(Form1 form1, int bookcase, string folder)
         {
+            this.folder = folder;
             this.form1 = form1;
             this.bookcase = bookcase;
             action = startGet;
@@ -304,16 +314,20 @@ namespace Wenku8Downloader
                 IWebElement element;
 
                 element = driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[10]/td/center/input[2]"));
-                while (element.GetAttribute("style").Contains("none"))
+                while (element.GetAttribute("style").Contains("none") || !running)
                     await Task.Delay(TimeSpan.FromMilliseconds(500));
                 element.Click();
 
                 element = driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[10]/td/center/input[3]"));
-                while (element.GetAttribute("style").Contains("none"))
+                while (element.GetAttribute("style").Contains("none") || !running)
                     await Task.Delay(TimeSpan.FromMilliseconds(500));
                 element.Click();
             }
-            catch { Form1.log.AppendLine($"{DateTime.Now}\t:\t{index}-mobi"); }
+            catch (Exception ex) 
+            {
+                Form1.log.AppendLine($"{DateTime.Now}\t:\t{index}-mobi"); 
+                Form1.log.AppendLine(ex.Message); 
+            }
         }
 
         #endregion

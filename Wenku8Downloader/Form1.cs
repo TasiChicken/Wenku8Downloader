@@ -17,10 +17,14 @@ namespace Wenku8Downloader
             InitializeComponent();
 
             comboBox1.SelectedIndex = 0;
-            textBox4.Text = Environment.GetEnvironmentVariable("USERPROFILE") + "\\Downloads";
 
             accountInfoTbs = new TextBox[] { textBox2, textBox3 };
             encodingRbs = new RadioButton[] { radioButton1, radioButton2, radioButton3 };
+
+            string[] s = File.ReadAllLines(CookieForm.CookieLocation);
+            for (int i = 0; i < accountInfoTbs.Length && i < s.Length; i++)
+                accountInfoTbs[i].Text = s[i];
+            textBox4.Text = (s.Length >= 3) ? s[3] : Environment.GetEnvironmentVariable("USERPROFILE") + "\\Downloads";
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -46,9 +50,14 @@ namespace Wenku8Downloader
         private RadioButton[] encodingRbs;
         private string[] encodings = { "gbk", "utf8", "big5" };
 
-        #endregion 
+        #endregion
 
         #region Buttons
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            new CookieForm().Show();
+        }
 
         private async void button1_Click(object sender, EventArgs e)
         {
@@ -57,6 +66,8 @@ namespace Wenku8Downloader
                 MessageBox.Show("Input data are not complete or wrong!"); 
                 return;
             }
+
+            button2.Enabled = textBox4.Enabled = false;
 
             saveMobi = false;
             string[] indexes = await getIndexes();
@@ -79,6 +90,8 @@ namespace Wenku8Downloader
                 MessageBox.Show("Input data are not complete or wrong!");
                 return;
             }
+
+            button2.Enabled = textBox4.Enabled = false;
 
             saveMobi = true;
             names.Clear();
@@ -147,7 +160,7 @@ namespace Wenku8Downloader
                 return indexes;
             }
 
-            return Form2.GetIndexes(this, comboBox1.SelectedIndex);
+            return Form2.GetIndexes(this, comboBox1.SelectedIndex, textBox4.Text);
         }
 
         private string getEncoding()
@@ -168,5 +181,6 @@ namespace Wenku8Downloader
         }
 
         #endregion
+
     }
 }
