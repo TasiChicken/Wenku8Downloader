@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Edge;
 
 namespace Wenku8Downloader
 {
@@ -32,10 +32,10 @@ namespace Wenku8Downloader
         
         private void initSelenium()
         {
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+            EdgeDriverService service = EdgeDriverService.CreateDefaultService();
             service.HideCommandPromptWindow = true;
 
-            ChromeOptions options = new ChromeOptions();
+            EdgeOptions options = new EdgeOptions();
             options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-gpu");
             options.AddArgument("--disable-dev-shm-usage");
@@ -44,7 +44,7 @@ namespace Wenku8Downloader
             options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
             options.AddUserProfilePreference("download.default_directory", folder);
 
-            _driver = new ChromeDriver(service, options);
+            _driver = new EdgeDriver(service, options);
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(3);
         }
         
@@ -170,7 +170,7 @@ namespace Wenku8Downloader
 
             try
             {
-                byte[] bytes = await client.GetByteArrayAsync($"https://dl1.wenku8.com/txt{encoding}/{head}/{index}.txt");
+                byte[] bytes = await client.GetByteArrayAsync($"https://dl1.wenku8.com/down/txt{encoding}/{head}/{index}.txt");
                 string txtContent = (encoding == "gbk" ? Encoding.GetEncoding("gbk") : Encoding.UTF8).GetString(bytes);
                 File.WriteAllText(location + $"//{index}.txt", txtContent);
             }
@@ -204,6 +204,7 @@ namespace Wenku8Downloader
             Task.Run(getIndexes);
         }
 
+        private static readonly string[] logInEleNames = { "username", "password" };
         private async Task getIndexes()
         {
             string bookcaseUrl = $@"https://www.wenku8.net/modules/article/bookcase.php?classid={bookcase}";
@@ -214,21 +215,22 @@ namespace Wenku8Downloader
             {
                 for (i = 0; i < 2; i++)
                 {
-                    var tb = driver.FindElement(By.XPath($@"/html/body/div[4]/div/div/form/table/tbody/tr[1]/td/table/tbody/tr[{i + 1}]/td[2]/input"));
+                    var tb = driver.FindElement(By.Name(logInEleNames[i]));
                     tb.SendKeys(form1.accountInfoTbs[i].Text);
                 }
-                driver.FindElement(By.XPath(@"/html/body/div[4]/div/div/form/table/tbody/tr[1]/td/table/tbody/tr[4]/td[2]/input")).Click();
+                driver.FindElement(By.Name("submit")).Click();
                 driver.Navigate().GoToUrl(bookcaseUrl);
             }
 
             List<string> list = new List<string>();
-
-            Action upLbl = () => label1.Text = $"Running {i - 2}/Unknown"; ;
-            Action upPgB = () => progressBar1.Value = i - 2;
-
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromMilliseconds(500);
 
-            for (i = 2; ; i++)
+            var bookItems = driver.FindElements(By.Id("checkid[]"));
+
+            Action upLbl = () => label1.Text = $"Running {i}/{bookItems.Count}"; ;
+            Action upPgB = () => progressBar1.Value = i;
+
+            for (i = 0; i < bookItems.Count; i++)
             {
                 if (!running) break;
 
@@ -237,7 +239,9 @@ namespace Wenku8Downloader
 
                 try
                 {
-                    var element = driver.FindElement(By.XPath($@"/html/body/div[5]/div[2]/div/form/table/tbody/tr[{i}]/td[2]/a"));
+                    Console.WriteLine(bookItems[i].Text);
+                   
+                    var element = bookItems[i].FindElement(By.XPath(@"../../td[2]/a"));
                     string href = element.GetAttribute("href");
                     int start = href.IndexOf("aid=") + 4;
                     list.Add(href.Substring(start, href.IndexOf("&bid") - start));
@@ -245,7 +249,7 @@ namespace Wenku8Downloader
                     if (!form1.saveMobi) continue;
 
                     form1.names.Add(element.Text);
-                    element = driver.FindElement(By.XPath($@"/html/body/div[5]/div[2]/div/form/table/tbody/tr[{i}]/td[3]/a"));
+                    element = bookItems[i].FindElement(By.XPath(@"../../td[3]/a"));
                     form1.authors.Add(element.Text);
                 }
                 catch { break; }
@@ -298,11 +302,11 @@ namespace Wenku8Downloader
             {
                 driver.Navigate().GoToUrl("https://ebook.cdict.info/mobi/#google_vignette");
 
-                driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[2]/td/input")).SendKeys(name);
-                driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[3]/td/input")).SendKeys(author);
-                driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[1]/td/input[1]")).SendKeys($@"{location}/{index}.txt");
-                driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[8]/td/input")).SendKeys($@"{location}/{index}.jpg");
-                driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[10]/td/center/input[1]")).Click();
+                driver.FindElement(By.Name("title")).SendKeys(name);
+                driver.FindElement(By.Name("author")).SendKeys(author);
+                driver.FindElement(By.Id("txt_file")).SendKeys($@"{location}/{index}.txt");
+                driver.FindElement(By.Id("cover_file")).SendKeys($@"{location}/{index}.jpg");
+                driver.FindElement(By.Id("nextbutton")).Click();
 
                 try
                 {
@@ -313,12 +317,12 @@ namespace Wenku8Downloader
 
                 IWebElement element;
 
-                element = driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[10]/td/center/input[2]"));
+                element = driver.FindElement(By.Id("submit_button"));
                 while (element.GetAttribute("style").Contains("none") || !running)
                     await Task.Delay(TimeSpan.FromMilliseconds(500));
                 element.Click();
 
-                element = driver.FindElement(By.XPath(@"/html/body/div[1]/div[4]/div/center[1]/table/tbody/tr[10]/td/center/input[3]"));
+                element = driver.FindElement(By.Id("download_button"));
                 while (element.GetAttribute("style").Contains("none") || !running)
                     await Task.Delay(TimeSpan.FromMilliseconds(500));
                 element.Click();

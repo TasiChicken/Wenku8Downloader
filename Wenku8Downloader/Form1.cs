@@ -24,7 +24,7 @@ namespace Wenku8Downloader
             string[] s = File.ReadAllLines(CookieForm.CookieLocation);
             for (int i = 0; i < accountInfoTbs.Length && i < s.Length; i++)
                 accountInfoTbs[i].Text = s[i];
-            textBox4.Text = (s.Length >= 3) ? s[3] : Environment.GetEnvironmentVariable("USERPROFILE") + "\\Downloads";
+            textBox4.Text = (s.Length >= 3) ? s[2] : Environment.GetEnvironmentVariable("USERPROFILE") + "\\Downloads";
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
