@@ -227,7 +227,10 @@ namespace Wenku8Downloader
 
             var bookItems = driver.FindElements(By.Id("checkid[]"));
 
-            Action upLbl = () => label1.Text = $"Running {i}/{bookItems.Count}"; ;
+            Action setMax = () => progressBar1.Maximum = bookItems.Count;
+            this.Invoke(setMax);
+
+            Action upLbl = () => label1.Text = $"Running {i}/{bookItems.Count}";
             Action upPgB = () => progressBar1.Value = i;
 
             for (i = 0; i < bookItems.Count; i++)
