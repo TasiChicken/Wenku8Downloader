@@ -115,6 +115,7 @@ namespace Wenku8Downloader
 
         private void button1_Click(object sender, EventArgs e)
         {
+            Form1.canceled = true;
             this.Close();
         }
 

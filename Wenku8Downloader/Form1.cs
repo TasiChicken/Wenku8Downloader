@@ -10,6 +10,8 @@ namespace Wenku8Downloader
 {
     public partial class Form1 : Form
     {
+        public static bool canceled = false;
+
         #region Form
 
         public Form1()
@@ -61,6 +63,8 @@ namespace Wenku8Downloader
 
         private async void button1_Click(object sender, EventArgs e)
         {
+            canceled = false;
+
             if (!check())
             {
                 MessageBox.Show("Input data are not complete or wrong!"); 
@@ -71,6 +75,8 @@ namespace Wenku8Downloader
 
             saveMobi = false;
             string[] indexes = await getIndexes();
+            if (canceled) return;
+
 
             Form2.Download(indexes, textBox4.Text, getEncoding(), checkBox2.Checked);
 
@@ -85,6 +91,8 @@ namespace Wenku8Downloader
 
         private async void button3_Click(object sender, EventArgs e)
         {
+            canceled = false;
+
             if (!check())
             {
                 MessageBox.Show("Input data are not complete or wrong!");
@@ -98,10 +106,14 @@ namespace Wenku8Downloader
             authors.Clear();
 
             string[] indexes = await getIndexes();
+            if (canceled) return;
+
             string encoing = checkBox1.Checked ? getEncoding() : encodings[0];
             bool separate = checkBox1.Checked && checkBox2.Checked;
 
             Form2.Download(indexes, textBox4.Text, encoing, separate);
+            if (canceled) return; 
+
             Form2.ConvertToMobi(this, indexes, textBox4.Text, separate);
 
             if (checkBox3.Checked)
