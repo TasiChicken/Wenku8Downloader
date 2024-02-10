@@ -13,16 +13,18 @@ namespace Wenku8Downloader
 {
     public partial class CookieForm : Form
     {
-        public CookieForm()
+        public CookieForm(TextBox[] oriTbs)
         {
             InitializeComponent();
-
+            
+            this.oriTbs = oriTbs;
             tbs = new TextBox[] { textBox2, textBox3, textBox4 };
 
             string[] s = File.ReadAllLines(CookieLocation);
             for(int i = 0; i < tbs.Length && i < s.Length; i++)
                 tbs[i].Text = s[i];
         }
+        TextBox[] oriTbs;
         TextBox[] tbs;
 
         private void button3_Click(object sender, EventArgs e)
@@ -37,6 +39,9 @@ namespace Wenku8Downloader
             for(int i = 0; i < tbs.Length; i++)
                 builder.AppendLine(tbs[i].Text);
             File.WriteAllText(CookieLocation, builder.ToString());
+
+            for (int i = 0; i < oriTbs.Length; i++)
+                oriTbs[i].Text = tbs[i].Text;
 
             this.Close();
         }

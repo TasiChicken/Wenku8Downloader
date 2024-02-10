@@ -58,7 +58,7 @@ namespace Wenku8Downloader
 
         private void button4_Click(object sender, EventArgs e)
         {
-            new CookieForm().Show();
+            new CookieForm(new TextBox[] { textBox2, textBox3, textBox4 }).Show();
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -108,8 +108,8 @@ namespace Wenku8Downloader
             string[] indexes = await getIndexes();
             if (canceled) return;
 
-            string encoing = checkBox1.Checked ? getEncoding() : encodings[0];
-            bool separate = checkBox1.Checked && checkBox2.Checked;
+            string encoing = getEncoding();
+            bool separate = checkBox2.Checked;
 
             Form2.Download(indexes, textBox4.Text, encoing, separate);
             if (canceled) return; 
