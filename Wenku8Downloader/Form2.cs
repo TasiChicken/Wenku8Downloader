@@ -39,7 +39,7 @@ namespace Wenku8Downloader
             options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-gpu");
             options.AddArgument("--disable-dev-shm-usage");
-            options.AddArgument("--headless=new");
+            //options.AddArgument("--headless=new");
 
             options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
             options.AddUserProfilePreference("download.default_directory", folder);
@@ -292,6 +292,7 @@ namespace Wenku8Downloader
                 label1.Text = $"Running {i}/{indexes.Length}";
                 progressBar1.Value = i;
 
+                driver.Navigate().GoToUrl("https://ebook.cdict.info/mobi/#google_vignette");
                 await convertABook(indexes[i], form1.names[i], form1.authors[i]);
             }
 
@@ -304,7 +305,7 @@ namespace Wenku8Downloader
 
             try
             {
-                driver.Navigate().GoToUrl("https://ebook.cdict.info/mobi/#google_vignette");
+                driver.Navigate().Refresh();
 
                 driver.FindElement(By.Name("title")).SendKeys(name);
                 driver.FindElement(By.Name("author")).SendKeys(author);
