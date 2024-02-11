@@ -10,6 +10,8 @@ using System.Windows.Forms;
 using System.Threading;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
+using WebDriverManager;
+using WebDriverManager.DriverConfigs.Impl;
 
 namespace Wenku8Downloader
 {
@@ -32,6 +34,8 @@ namespace Wenku8Downloader
         
         private void initSelenium()
         {
+            new DriverManager().SetUpDriver(new EdgeConfig());
+
             EdgeDriverService service = EdgeDriverService.CreateDefaultService();
             service.HideCommandPromptWindow = true;
 
@@ -39,7 +43,7 @@ namespace Wenku8Downloader
             options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-gpu");
             options.AddArgument("--disable-dev-shm-usage");
-            //options.AddArgument("--headless=new");
+            options.AddArgument("--headless=new");
 
             options.AddUserProfilePreference("profile.default_content_setting_values.images", 2);
             options.AddUserProfilePreference("download.default_directory", folder);
