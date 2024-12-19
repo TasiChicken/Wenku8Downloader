@@ -23,6 +23,7 @@ namespace Wenku8Downloader
             string[] s = File.ReadAllLines(CookieLocation);
             for(int i = 0; i < tbs.Length && i < s.Length; i++)
                 tbs[i].Text = s[i];
+            if(s.Length < 3) tbs[2].Text = oriTbs[2].Text;
         }
         TextBox[] oriTbs;
         TextBox[] tbs;

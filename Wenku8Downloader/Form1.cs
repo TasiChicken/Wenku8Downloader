@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -75,10 +76,9 @@ namespace Wenku8Downloader
 
             saveMobi = false;
             string[] indexes = await getIndexes();
-            if (canceled) return;
 
 
-            Form2.Download(indexes, textBox4.Text, getEncoding(), checkBox2.Checked);
+            if (!canceled) Form2.Download(indexes, textBox4.Text, getEncoding(), checkBox2.Checked);
 
             if (log.Length > 0)
             {
@@ -106,25 +106,13 @@ namespace Wenku8Downloader
             authors.Clear();
 
             string[] indexes = await getIndexes();
-            if (canceled) return;
+            if (!canceled)
+            {
+                string encoding = getEncoding();
+                bool separate = checkBox2.Checked;
 
-            string encoing = getEncoding();
-            bool separate = checkBox2.Checked;
-
-            Form2.Download(indexes, textBox4.Text, encoing, separate);
-            if (canceled) return; 
-
-            Form2.ConvertToMobi(this, indexes, textBox4.Text, separate);
-
-            if (checkBox3.Checked)
-                foreach (string index in indexes)
-                    if (separate)
-                        Directory.Delete($@"{textBox4.Text}/{index}", true);
-                    else
-                    {
-                        File.Delete($@"{textBox4.Text}/{index}.txt");
-                        File.Delete($@"{textBox4.Text}/{index}.jpg");
-                    }
+                Form2.DownloadAndConvertToMobi(this, indexes, textBox4.Text, encoding, separate, checkBox3.Checked);
+            }
 
             if (log.Length > 0)
             {
@@ -184,7 +172,7 @@ namespace Wenku8Downloader
 
         private bool check()
         {
-            if (!Directory.Exists(textBox4.Text)) return false;
+            if (!Directory.Exists(textBox4.Text)) Directory.CreateDirectory(textBox4.Text);
 
             if (tabControl1.SelectedIndex == 0)
                 return textBox1.TextLength > 0;

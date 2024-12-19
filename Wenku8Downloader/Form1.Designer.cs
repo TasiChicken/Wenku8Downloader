@@ -185,7 +185,7 @@
             this.tabPage1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.tabPage1.Size = new System.Drawing.Size(773, 400);
+            this.tabPage1.Size = new System.Drawing.Size(773, 393);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "By Indexes";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -282,10 +282,10 @@
             this.checkBox3.AutoSize = true;
             this.checkBox3.Checked = true;
             this.checkBox3.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox3.Location = new System.Drawing.Point(440, 150);
+            this.checkBox3.Location = new System.Drawing.Point(303, 150);
             this.checkBox3.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(329, 38);
+            this.checkBox3.Size = new System.Drawing.Size(466, 38);
             this.checkBox3.TabIndex = 16;
             this.checkBox3.Text = "Delete non mobi after converting";
             this.checkBox3.UseVisualStyleBackColor = true;
@@ -297,9 +297,9 @@
             this.radioButton3.Location = new System.Drawing.Point(10, 114);
             this.radioButton3.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.radioButton3.Name = "radioButton3";
-            this.radioButton3.Size = new System.Drawing.Size(214, 38);
+            this.radioButton3.Size = new System.Drawing.Size(234, 38);
             this.radioButton3.TabIndex = 15;
-            this.radioButton3.Text = "繁體(UTF-8)";
+            this.radioButton3.Text = "繁體(Unicode)";
             this.radioButton3.UseVisualStyleBackColor = true;
             // 
             // radioButton2
@@ -309,9 +309,9 @@
             this.radioButton2.Location = new System.Drawing.Point(10, 79);
             this.radioButton2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(214, 38);
+            this.radioButton2.Size = new System.Drawing.Size(234, 38);
             this.radioButton2.TabIndex = 14;
-            this.radioButton2.Text = "简体(UTF-8)";
+            this.radioButton2.Text = "简体(Unicode)";
             this.radioButton2.UseVisualStyleBackColor = true;
             // 
             // radioButton1
@@ -325,7 +325,7 @@
             this.radioButton1.Size = new System.Drawing.Size(193, 38);
             this.radioButton1.TabIndex = 13;
             this.radioButton1.TabStop = true;
-            this.radioButton1.Text = "简体(GBK)(Recommend)";
+            this.radioButton1.Text = "简体(GBK)";
             this.radioButton1.UseVisualStyleBackColor = true;
             // 
             // checkBox2

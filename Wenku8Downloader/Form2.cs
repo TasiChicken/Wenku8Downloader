@@ -1,17 +1,16 @@
-﻿using System;
-using System.Net.Http;
+﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Edge;
+using OpenQA.Selenium.Support.UI;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Threading;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Edge;
 using WebDriverManager;
 using WebDriverManager.DriverConfigs.Impl;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Wenku8Downloader
 {
@@ -79,10 +78,10 @@ namespace Wenku8Downloader
             new Form2(folder, encoding, separate).ShowDialog();
         }
 
-        public static void ConvertToMobi(Form1 form1, string[] indexes, string folder, bool separate)
+        public static void DownloadAndConvertToMobi(Form1 form1, string[] indexes, string folder, string encoding, bool separate, bool delete)
         {
             Form2.indexes = indexes;
-            new Form2(form1, folder, separate).ShowDialog();
+            new Form2(form1, folder, encoding, separate, delete).ShowDialog();
         }
 
         public static void dispose()
@@ -150,12 +149,12 @@ namespace Wenku8Downloader
 
                 label1.Text = $"Running {i}/{indexes.Length}";
                 progressBar1.Value = i;
-                await downLoadImgAndTxt(indexes[i]);
+                await downloadImgAndTxt(indexes[i]);
             }
             this.Close();
         }
 
-        private async Task downLoadImgAndTxt(string index)
+        private async Task downloadImgAndTxt(string index)
         {
             char head = index.Length < 4 ? '0' : index[0];
 
@@ -165,6 +164,7 @@ namespace Wenku8Downloader
             try
             {
                 byte[] imgData = await client.GetByteArrayAsync($"https://img.wenku8.com/image/{head}/{index}/{index}s.jpg");
+                if (!running) return;
                 File.WriteAllBytes(location + $"//{index}.jpg", imgData);
             }
             catch (Exception ex)
@@ -175,7 +175,28 @@ namespace Wenku8Downloader
 
             try
             {
-                byte[] bytes = await client.GetByteArrayAsync($"https://dl1.wenku8.com/down/txt{encoding}/{head}/{index}.txt");
+                byte[] bytes;
+                while (true)
+                {
+                    HttpResponseMessage response = await client.GetAsync($"https://dl1.wenku8.com/down/txt{encoding}/{head}/{index}.txt");
+                    if (!running) return;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        bytes = await response.Content.ReadAsByteArrayAsync();
+                        break;
+                    }
+                    if((int)response.StatusCode == 429)
+                    {
+                        await Task.Delay(1000);
+                    }
+                    else
+                    {
+                        Form1.log.AppendLine($"{DateTime.Now}\t:\t{index}-txt");
+                        Form1.log.AppendLine($"Error: HTTP {(int)response.StatusCode} {response.StatusCode}");
+                        return;
+                    }
+                }
+
                 string txtContent = (encoding == "gbk" ? Encoding.GetEncoding("gbk") : Encoding.UTF8).GetString(bytes);
                 File.WriteAllText(location + $"//{index}.txt", txtContent);
             }
@@ -273,19 +294,22 @@ namespace Wenku8Downloader
 
         #region ConvertToMobi
 
-        private Form2(Form1 form1, string folder, bool separate)
+        bool delete;
+        private Form2(Form1 form1, string folder, string encoding, bool separate, bool delete)
         {
             this.form1 = form1; 
             this.folder = folder;
             this.separate = separate;
-            action = convertBooks;
+            this.delete = delete;
+            this.encoding = encoding;
+            action = downloadAndConvertBooks;
 
             InitializeComponent();
 
             this.Text = "Convert Books to MOBI Files";
         }
 
-        private async void convertBooks()
+        private async void downloadAndConvertBooks()
         {
             progressBar1.Maximum = indexes.Length;
 
@@ -295,9 +319,23 @@ namespace Wenku8Downloader
 
                 label1.Text = $"Running {i}/{indexes.Length}";
                 progressBar1.Value = i;
+                
+                await downloadImgAndTxt(indexes[i]);
 
                 driver.Navigate().GoToUrl("https://ebook.cdict.info/mobi/#google_vignette");
+
                 await convertABook(indexes[i], form1.names[i], form1.authors[i]);
+
+                if(delete)
+                {
+                    if (separate)
+                        Directory.Delete($@"{folder}/{indexes[i]}", true);
+                    else
+                    {
+                        File.Delete($@"{folder}/{indexes[i]}.txt");
+                        File.Delete($@"{folder}/{indexes[i]}.jpg");
+                    }
+                }
             }
 
             this.Close();
@@ -323,17 +361,20 @@ namespace Wenku8Downloader
                     alert.Accept();
                 }
                 catch { }
-
                 IWebElement element;
 
                 element = driver.FindElement(By.Id("submit_button"));
-                while (element.GetAttribute("style").Contains("none") || !running)
-                    await Task.Delay(TimeSpan.FromMilliseconds(500));
+                while (element.GetAttribute("style").Contains("none") || !running || !element.Enabled)
+                    await Task.Delay(500);
+                if (!running) return;
+                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", element);
                 element.Click();
 
+                await Task.Delay(2000);
                 element = driver.FindElement(By.Id("download_button"));
-                while (element.GetAttribute("style").Contains("none") || !running)
-                    await Task.Delay(TimeSpan.FromMilliseconds(500));
+                while (element.GetAttribute("style").Contains("none") || !running || !element.Enabled)
+                    await Task.Delay(500);
+                if (!running) return;
                 element.Click();
             }
             catch (Exception ex) 
